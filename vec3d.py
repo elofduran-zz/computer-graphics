@@ -3,14 +3,13 @@ import math
 
 class Vec3d:
 
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, w):
         self.x = x
         self.y = y
         self.z = z
-        self.w = 0
+        self.w = w
 
     # vector operations
-
     def calculate_length(self):
         return math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
 
@@ -24,15 +23,15 @@ class Vec3d:
 
     def normalize_vector(self):
         length = self.calculateLength()
-        result = Vec3d(self.x / length, self.y / length, self.z / length)
+        result = Vec3d(self.x / length, self.y / length, self.z / length, 1)
         return result
 
     def find_angle(self, vec):
         beta = self.dotProduct(vec) / (self.calculateLength() * vec.calculateLength())
         return math.acos(beta) * (180 / math.pi)  # acos returns in radian
 
-    def dot_product(self, vec2):
-        return self.x * vec2.x + self.y * vec2.y + self.z * vec2.z
+    def dot_product(self, vec):
+        return self.x * vec.x + self.y * vec.y + self.z * vec.z + self.w * vec.w
 
     def cross_product(self, vec):
         result = Vec3d(
