@@ -1,3 +1,8 @@
+# CENG 487 Assignment1 by
+# Elif Duran
+# StudentId: 230201002
+# October 2019
+
 import math
 
 
@@ -39,11 +44,6 @@ class Vec3d:
             self.z * vec.x - self.x * vec.z,
             self.x * vec.y - self.y * vec.x)
         return result
-
-    def calculate_projection(self):
-        return
-
-    # todo calculate it
 
     # printing a vector
     def __str__(self):
