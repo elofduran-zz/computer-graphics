@@ -7,7 +7,6 @@
 # -----
 # This Uses PyOpenGL and PyOpenGL_accelerate packages.  It also uses GLUT for UI.
 # To get proper GLUT support on linux don't forget to install python-opengl package using apt
-import sys
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -15,9 +14,9 @@ from OpenGL.GLUT import *
 
 # Some api in the chain is translating the keystrokes to this octal string
 # so instead of saying: ESCAPE = 27, we use the following.
-from mat3d import Mat3d
-from object import Object
-from vec3d import Vec3d
+from assignment1.mat3d import Mat3d
+from assignment1.object import Object
+from assignment1.vec3d import Vec3d
 
 ESCAPE = '\033'
 

@@ -5,7 +5,7 @@
 
 import math
 
-from vec3d import Vec3d
+from assignment1.vec3d import Vec3d
 
 
 class Mat3d:
