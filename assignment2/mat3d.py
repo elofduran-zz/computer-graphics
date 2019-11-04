@@ -1,7 +1,12 @@
+# CENG 487 Assignment2 by
+# Elif Duran
+# StudentId: 230201002
+# November 2019
+
 import math
 
-from assignment2.vec3d import Vec3d
-from assignment2.hcoordinates import HCoordinates
+from vec3d import Vec3d
+from hcoordinates import HCoordinates
 
 
 class Mat3d:

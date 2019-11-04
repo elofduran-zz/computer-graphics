@@ -1,3 +1,8 @@
+# CENG 487 Assignment2 by
+# Elif Duran
+# StudentId: 230201002
+# November 2019
+
 import math
 from OpenGL.GL import *
 

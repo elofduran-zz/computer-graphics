@@ -1,9 +1,14 @@
+# CENG 487 Assignment2 by
+# Elif Duran
+# StudentId: 230201002
+# November 2019
+
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
-from assignment2.cube import Cube
-from assignment2.pyramid import Pyramid
+from cube import Cube
+from pyramid import Pyramid
 
 ESCAPE = '\033'
 bool_pyramid = False
@@ -49,7 +54,7 @@ def keyPressed(*argv):
     if pyramid is not None:
         if argv[0] == b'a':
             pyramid.num_slices += 1
-        elif argv[0] == b'e':
+        elif argv[0] == b'e' and pyramid.num_slices > 2:
             pyramid.num_slices -= 1
 
 
