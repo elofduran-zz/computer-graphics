@@ -122,6 +122,7 @@ def keyPressed(*argv):
     if argv[0] == ESCAPE:
         sys.exit()
 
+
 def main():
     global window
     glutInit(sys.argv)
