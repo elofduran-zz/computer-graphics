@@ -7,13 +7,11 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
-from cube import Cube
-from pyramid import Pyramid
+from object import Cube, Prizma, Pyramid
+from scene import Scene
 
 ESCAPE = '\033'
-bool_pyramid = False
-bool_cube = False
-pyramid = Pyramid(1, 2)
+scene = Scene()
 
 # A general OpenGL initialization function.  Sets all of the initial parameters.
 def InitGL(Width, Height):
@@ -42,34 +40,28 @@ def ReSizeGLScene(Width, Height):
 
 
 def keyPressed(*argv):
-    global bool_pyramid, bool_cube
     if argv[0] == b'\x1b':
         sys.exit()
-    elif argv[0] == b'p':
-        bool_pyramid = True
-        bool_cube = False
     elif argv[0] == b'c':
-        bool_cube = True
-        bool_pyramid = False
-    if pyramid is not None:
-        if argv[0] == b'a':
-            pyramid.num_slices += 1
-        elif argv[0] == b'e' and pyramid.num_slices > 2:
-            pyramid.num_slices -= 1
-
+        scene.key_pressed('cube')
+    elif argv[0] == b'p':
+        scene.key_pressed('prizma')
+    elif argv[0] == b'y':
+        scene.key_pressed('pyramid')
+    elif argv[0] == b'a':
+        scene.key_pressed('increase')
+    elif argv[0] == b'e':
+        scene.key_pressed('decrease')
+    elif argv[0] == b'r':
+        scene.key_pressed('reset')
 
 def DrawGLScene():
-    global bool_pyramid, bool_cube, pyramid
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
     gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
     glTranslatef(0.0, -0.4, -3.0)
-    glRotatef(-40, 1.0, 0.0, 0.0)
-
-    if bool_cube:
-        Cube.draw_cube()  # Draw cube
-    if bool_pyramid:
-        pyramid.draw_pyramid()  # Draw pyramid
+    glRotatef(-40, 40.0, 00.0, 40.0)
+    scene.render()
     glutSwapBuffers()
 
 
@@ -95,8 +87,10 @@ def main():
 # Print message to console, and kick off the main to get it rolling.
 print("Hit ESC key to quit.")
 print("Hit 'c' to draw a cube.")
-print("Hit 'p' to draw a pyramid.")
-print("Hit 'a' to increase pyramid's subdivisions.")
+print("Hit 'p' to draw a prizma.")
+print("Hit 'y' to draw a pyramid.")
+print("Hit 'a' to increase pyramid's or cube's subdivisions.")
 print("Hit 'e' to decrease pyramid's subdivisions.")
+print("Hit 'r' to reset pyramid.")
 
 main()

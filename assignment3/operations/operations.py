@@ -1,6 +1,11 @@
-from assignment3.coordinates.position import Position
-from assignment3.coordinates.vec3d import Vec3d
-from assignment3.operations.mat3d import Mat3d
+# CENG 487 Assignment3 by
+# Elif Duran
+# StudentId: 230201002
+# November 2019
+
+
+from hcoordinates import Position, Vec3d
+from operations.mat3d import Mat3d
 
 
 class Operations:

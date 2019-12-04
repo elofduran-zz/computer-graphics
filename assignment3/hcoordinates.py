@@ -1,12 +1,13 @@
-# CENG 487 Assignment2 by
+# CENG 487 Assignment3 by
 # Elif Duran
 # StudentId: 230201002
 # November 2019
 
+
 import math
 
 
-class HCoordinates:
+class HCoordinates(object):
 
     def __init__(self, x, y, z, w):
         self.x = x
@@ -56,3 +57,46 @@ class Position(HCoordinates):
 class Vec3d(HCoordinates):
     def __init__(self, x, y, z):
         HCoordinates.__init__(self, x, y, z, 0.0)
+
+    # vector operations
+    def normalize_vector(self):
+        length = self.calculateLength()
+        result = Vec3d(self.x / length, self.y / length, self.z / length)
+        return result
+
+    def find_angle(self, vec):
+        beta = self.dotProduct(vec) / (self.calculateLength() * vec.calculateLength())
+        return math.acos(beta) * (180 / math.pi)  # acos returns in radian
+
+    def cross_product(self, vec):
+        result = Vec3d(
+            self.y * vec.z - self.z * vec.y,
+            self.z * vec.x - self.x * vec.z,
+            self.x * vec.y - self.y * vec.x)
+        return result
+
+    def calculate_center(self, vec):
+        x = (self.x + vec.x) / 2
+        y = (self.y + vec.y) / 2
+        z = (self.z + vec.z) / 2
+        return Vec3d(x, y, z)
+
+    def multiply_vec(self, num):
+        return Vec3d(self.x * num, self.y * num, self.z * num)
+
+    def get_index(self, i):
+        if i == 0:
+            return self.x
+        elif i == 1:
+            return self.y
+        elif i == 2:
+            return self.z
+
+    def add(self, other):
+        return Vec3d(self.x + other.x,
+                     self.y + other.y,
+                     self.z + other.z)
+
+    @staticmethod
+    def calculate_midpoint(p1, p2):
+        return [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2]

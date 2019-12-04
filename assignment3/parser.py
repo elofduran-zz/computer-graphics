@@ -1,5 +1,10 @@
-from assignment3.object import Object
-from assignment3.coordinates.vec3d import Vec3d
+# CENG 487 Assignment3 by
+# Elif Duran
+# StudentId: 230201002
+# November 2019
+
+from hcoordinates import Vec3d
+from object import Object
 
 
 class Parser:
@@ -21,12 +26,8 @@ class Parser:
                 vertices.append(vertex)
             elif line.startswith("f"):
                 faces_line = line.split()
-                face_vertices = []
+                face = [int(faces_line[1]), int(faces_line[2]), int(faces_line[3]), int(faces_line[4])]
+                faces.append(face)
 
-                for face in faces_line[1:]:
-                    face = int(face)
-                    face_vertices.append(vertices[face-1])
-                faces.append(face_vertices)
-
-        obj = Object(name, faces)
+        obj = Object(name, vertices, faces)
         return obj

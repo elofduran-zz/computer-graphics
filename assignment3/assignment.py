@@ -1,13 +1,19 @@
+# CENG 487 Assignment3 by
+# Elif Duran
+# StudentId: 230201002
+# November 2019
+
+
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
-from assignment3.scene import Scene
+from scene import Scene
 
 ESCAPE = '\033'
 window = 0
 
-scene = Scene(["./objects/ecube.obj"])
+scene = Scene(sys.argv[1])
 scene.init()
 
 
@@ -39,26 +45,25 @@ def DrawGLScene():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
     gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
-    # glTranslatef(0.0, -0.4, -3.0)
+    glTranslatef(0.0, -0.4, -3.0)
     # glRotatef(-40, 1.0, 0.0, 0.0)
     scene.render()
+    glRasterPos2f(-6, 4)
+    for character in str("FPS:"):
+        glutBitmapCharacter(GLUT.GLUT_BITMAP_9_BY_15, ord(character))
+    glutSwapBuffers()
     glutSwapBuffers()
 
 
 def keyPressed(*argv):
     if argv[0] == b'\x1b':
         sys.exit()
-    # elif argv[0] == b'p':
-    #     bool_pyramid = True
-    #     bool_cube = False
-    # elif argv[0] == b'c':
-    #     bool_cube = True
-    #     bool_pyramid = False
-    # if pyramid is not None:
-    #     if argv[0] == b'a':
-    #         pyramid.num_slices += 1
-    #     elif argv[0] == b'e' and pyramid.num_slices > 2:
-    #         pyramid.num_slices -= 1
+    elif argv[0] == b'a':
+        scene.key_pressed('increase')
+    elif argv[0] == b'e':
+        scene.key_pressed('decrease')
+    elif argv[0] == b'r':
+        scene.key_pressed('reset')
 
 
 def special_key(key, x, y):
@@ -86,5 +91,7 @@ def main():
 
 
 print("Hit ESC key to quit.")
-print("Press left or right arrow keys to rotate around the y-axis.")
+print("Press 'a' to increase subdivision.")
+print("Press 'e' to decrease subdivision.")
+print("Press 'r' to reset subdivision.")
 main()

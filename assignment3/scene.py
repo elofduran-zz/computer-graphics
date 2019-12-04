@@ -1,26 +1,47 @@
-from assignment3.parser import Parser
+# CENG 487 Assignment3 by
+# Elif Duran
+# StudentId: 230201002
+# November 2019
+
+
+from hcoordinates import HCoordinates
+from parser import Parser
 
 
 class Scene:
 
-    def __init__(self, file_list):
+    def __init__(self, file):
+        self.camera = HCoordinates(1.0, 1.0, -10.0, 1.0)
         self.parser = Parser()
-        self.files = file_list
-        self.object_list = []
+        self.file = file
+        self.obj = self.init()
+        self.subdivisionLevel = 1
 
     def init(self):
-        for file in self.files:
-            obj = self.parser.read_object(file)
-            self.object_list.append(obj)
+        obj = self.parser.read_object(self.file)
+        return obj
 
     def render(self):
-        for obj in self.object_list:
-            obj.draw()
+        self.obj.draw(self.camera)
 
     def key_pressed(self, key):
-        if key == "left":
-            for obj in self.object_list:
-                obj.operation.rotate_y(-2.0)
-        elif key == "right":
-            for obj in self.object_list:
-                obj.operation.rotate_y(2.0)
+        if key == "increase" and self.subdivisionLevel < 5:
+            self.subdivisionLevel += 1
+            self.subdivide(self.subdivisionLevel)
+            self.obj.draw(self.camera)
+        elif key == "decrease" and self.subdivisionLevel > 1:
+            self.subdivisionLevel -= 1
+            self.subdivide(self.subdivisionLevel)
+            self.obj.draw(self.camera)
+        elif key == "reset":
+            self.subdivisionLevel = 1
+            self.subdivide(self.subdivisionLevel)
+            self.obj.draw(self.camera)
+
+    def subdivide(self, subdivisionLevel):
+        self.obj = self.init()
+        for i in range(subdivisionLevel - 1):
+            self.obj.subdivide()
+
+
+

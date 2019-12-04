@@ -1,23 +1,24 @@
-# CENG 487 Assignment3 by
+# CENG 487 Assignment2 by
 # Elif Duran
 # StudentId: 230201002
 # November 2019
 
-
+import math
 import random
 from functools import reduce
-from OpenGL.GL import *
 
 
 # Reference: https://rosettacode.org/wiki/Catmull%E2%80%93Clark_subdivision_surface#Python
+from OpenGL.GL import *
+
 from hcoordinates import HCoordinates, Vec3d
-from operations.mat3d import Mat3d
+from mat3d import Mat3d
 
 
-class Object:
+class Shape:
 
-    def __init__(self, name, vertices, faces):
-        self.name = name
+    def __init__(self, type, vertices, faces):
+        self.type = type
         self.vertices = vertices
         self.faces = faces
         self.colors = []
@@ -30,7 +31,7 @@ class Object:
         for i, vertex in enumerate(self.vertices):
             self.vertices[i] = mat3d.multiply_vec(vertex)
 
-    def draw(self, camera):
+    def draw(self):
         index = 0
         for face in self.faces:
 
@@ -163,10 +164,10 @@ class Object:
                 fp2 = fp1
             else:
                 fp2 = face_points[edge[3]]
-            cfp = Vec3d.calculate_midpoint(fp1, fp2)
+            cfp = fp1.calculate_center(fp2)
             # get average between center of edge and
             # center of facepoints
-            edge_point = cp.calculate_center(Vec3d(cfp[0], cfp[1], cfp[2]))
+            edge_point = cp.calculate_center(cfp)
             edge_points.append(edge_point)
         return edge_points
 
@@ -197,6 +198,8 @@ class Object:
         avg_face_points = []
 
         for tp in temp_points:
+            if tp[1] == 0:
+                tp[1] += 1.0
             avg_face_points.append(tp[0] * (1.0 / tp[1]))
 
         return avg_face_points
@@ -226,6 +229,8 @@ class Object:
         # divide out number of points to get average
         avg_mid_edges = []
         for tp in temp_points:
+            if tp[1] == 0:
+                tp[1] += 1.0
             avg_mid_edges.append(tp[0] * (1.0 / tp[1]))
 
         return avg_mid_edges
@@ -410,4 +415,104 @@ class Object:
             b = random.uniform(0, 1)
             self.colors.append(HCoordinates(r, g, b, 1.0))
 
+
+class Cube(Shape):
+
+    def __init__(self):
+        vertices = [
+            HCoordinates(1.0, -1.0, -1.0, 1.0),
+            HCoordinates(1.0, -1.0, 1.0, 1.0),
+            HCoordinates(-1.0, -1.0, 1.0, 1.0),
+            HCoordinates(-1.0, -1.0, -1.0, 1.0),
+            HCoordinates(1.0, 1.0, -1.0, 1.0),
+            HCoordinates(1.0, 1.0, 1.0, 1.0),
+            HCoordinates(-1.0, 1.0, 1.0, 1.0),
+            HCoordinates(-1.0, 1.0, -1.0, 1.0)]
+
+        faces = [
+            [0, 1, 2, 3],
+            [4, 7, 6, 5],
+            [0, 4, 5, 1],
+            [1, 5, 6, 2],
+            [2, 6, 7, 3],
+            [4, 0, 3, 7]]
+
+        Shape.__init__(self, "CUBE", vertices, faces)
+
+class Prizma(Shape):
+
+    def __init__(self, radius, height):
+        self.type = "PRIZMA"
+        self.radius = radius
+        self.height = height
+        self.num_slices = 3
+
+    def draw(self):
+        r = self.radius
+        h = self.height
+        n = float(self.num_slices)
+
+        circle_pts = []
+        for i in range(int(n) + 1):
+            angle = 2 * math.pi * (i / n)
+            x = r * math.cos(angle)
+            y = r * math.sin(angle)
+            pt = (x, y)
+            circle_pts.append(pt)
+
+        glBegin(GL_TRIANGLE_FAN)  # drawing the back circle
+        glColor(1, 0, 0)
+        glVertex(0, 0, h / 2.0)
+        for (x, y) in circle_pts:
+            z = h / 2.0
+            glVertex(x, y, z)
+        glEnd()
+
+        glBegin(GL_TRIANGLE_FAN)  # drawing the front circle
+        glColor(0, 0, 1)
+        glVertex(0, 0, h / 2.0)
+        for (x, y) in circle_pts:
+            z = -h / 2.0
+            glVertex(x, y, z)
+        glEnd()
+
+        glBegin(GL_TRIANGLE_STRIP)  # draw the tube
+        glColor(0, 1, 0)
+        for (x, y) in circle_pts:
+            z = h / 2.0
+            glVertex(x, y, z)
+            glVertex(x, y, -z)
+        glEnd()
+
+        glLineWidth(2.5)
+        glBegin(GL_LINE_LOOP)
+        glColor3f(.3, .3, .3)
+        for (x, y) in circle_pts:
+            z = h / 2.0
+            glVertex(x, y, z)
+            glVertex(x, y, -z)
+        glEnd()
+
+class Pyramid(Shape):
+
+    def __init__(self):
+        vertices = [
+            HCoordinates(1.0, 0.0, 0.0, 1.0),
+            HCoordinates(0.0, 1.0, 0.0, 1.0),
+            HCoordinates(0.0, 0.0, 1.0, 1.0),
+            HCoordinates(0.0, 0.0, -1.0, 1.0),
+            HCoordinates(0.0, -1.0, 0.0, 1.0),
+            HCoordinates(-1.0, 0.0, 0.0, 1.0)]
+
+        faces = [
+            [0, 1, 2],
+            [0, 3, 2],
+            [0, 2, 4],
+            [0, 4, 3],
+            [5, 3, 1],
+            [5, 1, 3],
+            [5, 4, 2],
+            [5, 3, 4]]
+
+        Shape.__init__(self, "PRIZMA", vertices, faces)
 
