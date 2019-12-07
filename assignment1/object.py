@@ -2,20 +2,17 @@
 # Elif Duran
 # StudentId: 230201002
 # October 2019
-from assignment1.vec3d import Vec3d
-
 
 class Object:
 
     def __init__(self, vertices, positions, matrix_stack):
         self.vertices = vertices
-        self.new_vertices = Vec3d(0, 0, 0, 0)
         self.positions = positions
         self.matrix_stack = matrix_stack
 
     def apply_operation(self, mat3d):
         for i, vertex in enumerate(self.vertices):
-            self.new_vertices[i] = mat3d.vector_multiplication(vertex)
+            self.vertices[i] = mat3d.vector_multiplication(vertex)
 
     def apply_stack(self):
         for matrix in self.matrix_stack:
