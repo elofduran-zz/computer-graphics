@@ -21,13 +21,12 @@ class Scene:
             pass
 
     def divide(self):
-        if self.obj.type == "CUBE":
-            self.subdivide(self.obj, self.subdivision_level)
-        elif self.obj.type == "PRISM":
+        if self.obj.type == "PRISM":
             self.obj.num_slices = self.subdivision_level
+            self.render()
         elif self.obj.type == "CYLINDER":
             self.obj.num_slices = self.subdivision_level
-        self.render()
+            self.render()
 
     def key_pressed(self, key):
         if key == "cube":
