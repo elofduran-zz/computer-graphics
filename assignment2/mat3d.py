@@ -10,7 +10,7 @@ from hcoordinates import HCoordinates
 
 class Mat3d(object):
 
-    def __init__(self, matrix  =None):
+    def __init__(self, matrix=None):
         if matrix == None:
             self.cols = [HCoordinates(1.0, 0.0, 0.0, 0.0), HCoordinates(0.0, 1.0, 0.0, 0.0),
                          HCoordinates(0.0, 0.0, 1.0, 0.0), HCoordinates(0.0, 0.0, 0.0, 1.0)]

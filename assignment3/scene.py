@@ -28,15 +28,15 @@ class Scene:
         if key == "increase" and self.subdivisionLevel < 5:
             self.subdivisionLevel += 1
             self.subdivide(self.subdivisionLevel)
-            self.obj.draw(self.camera)
+            # self.obj.draw(self.camera)
         elif key == "decrease" and self.subdivisionLevel > 1:
             self.subdivisionLevel -= 1
             self.subdivide(self.subdivisionLevel)
-            self.obj.draw(self.camera)
+            # self.obj.draw(self.camera)
         elif key == "reset":
             self.subdivisionLevel = 1
             self.subdivide(self.subdivisionLevel)
-            self.obj.draw(self.camera)
+            # self.obj.draw(self.camera)
 
     def subdivide(self, subdivisionLevel):
         self.obj = self.init()

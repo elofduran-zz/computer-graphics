@@ -1,31 +1,30 @@
-# CENG 487 Assignment3 by
+# CENG 487 Assignment2 by
 # Elif Duran
 # StudentId: 230201002
 # November 2019
 
-
-from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
+from object import *
 from scene import Scene
 
 ESCAPE = '\033'
-window = 0
-
-scene = Scene(sys.argv[1])
-scene.init()
-
-
+scene = Scene()
+cube = Cube()
+scene.obj = cube
+# A general OpenGL initialization function.  Sets all of the initial parameters.
 def InitGL(Width, Height):
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glClearDepth(1.0)
     glDepthFunc(GL_LESS)
     glEnable(GL_DEPTH_TEST)
     glShadeModel(GL_SMOOTH)
+
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     gluPerspective(45.0, float(Width) / float(Height), 0.1, 100.0)
+
     glMatrixMode(GL_MODELVIEW)
 
 
@@ -40,20 +39,17 @@ def ReSizeGLScene(Width, Height):
     glMatrixMode(GL_MODELVIEW)
 
 
-def DrawGLScene():
-    global scene
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glLoadIdentity()
-    gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
-    glTranslatef(0.0, -0.4, -3.0)
-    glRotatef(-40, 1.0, 0.0, 0.0)
-    scene.render()
-    glutSwapBuffers()
-
-
 def keyPressed(*argv):
     if argv[0] == b'\x1b':
         sys.exit()
+    elif argv[0] == b'c':
+        scene.key_pressed('cube')
+    elif argv[0] == b'p':
+        scene.key_pressed('prism')
+    elif argv[0] == b'y':
+        scene.key_pressed('pyramid')
+    elif argv[0] == b's':
+        scene.key_pressed('cylinder')
     elif argv[0] == b'a':
         scene.key_pressed('increase')
     elif argv[0] == b'e':
@@ -62,32 +58,48 @@ def keyPressed(*argv):
         scene.key_pressed('reset')
 
 
-def special_key(key, x, y):
-    global scene
-    if key == GLUT_KEY_LEFT:
-        scene.key_pressed('left')
-    elif key == GLUT_KEY_RIGHT:
-        scene.key_pressed('right')
+
+
+def DrawGLScene():
+
+    global cube
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
+    gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+    glTranslatef(0.0, -0.4, -3.0)
+    glRotatef(-40, 40.0, 00.0, 40.0)
+    scene.render()
+    glutSwapBuffers()
 
 
 def main():
     global window
+
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
     glutInitWindowSize(640, 480)
     glutInitWindowPosition(0, 0)
-    window = glutCreateWindow("Elofin")
+    window = glutCreateWindow("CENG487 Template")
     glutDisplayFunc(DrawGLScene)
     glutIdleFunc(DrawGLScene)
     glutReshapeFunc(ReSizeGLScene)
+    # Register the function called when the keyboard is pressed.
     glutKeyboardFunc(keyPressed)
-    glutSpecialFunc(special_key)
+    # glRotatef(1, 3, 1, 1)
+
+    # Initialize our window.
     InitGL(640, 480)
     glutMainLoop()
 
 
+# Print message to console, and kick off the main to get it rolling.
 print("Hit ESC key to quit.")
-print("Press 'a' to increase subdivision.")
-print("Press 'e' to decrease subdivision.")
-print("Press 'r' to reset subdivision.")
+print("Hit 'c' to draw a cube.")
+print("Hit 'p' to draw a prism.")
+print("Hit 'y' to draw a pyramid.")
+print("Hit 's' to draw a cylinder.")
+print("Hit 'a' to increase cylinder's or prism's subdivisions.")
+print("Hit 'e' to decrease cylinder's or prism's subdivisions.")
+print("Hit 'r' to reset prism.")
+
 main()

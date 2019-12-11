@@ -67,347 +67,203 @@ class Object:
             glEnd()
 
 
-    # face points are calculated for each face by computing the average of all vertices of the face
-    def get_face_points(self):
-        NUM_DIMENSIONS = 3
-        # face_points will have one point for each face
-        # face_points = []
-        face_points = [reduce(lambda v1, v2: v1.add(v2), map(lambda idx: self.vertices[idx], face)) * (1.0 / len(face)) for
-                      face in self.faces]
-
-        # for curr_face in self.faces:
-        #     face_point = Vec3d(0.0, 0.0, 0.0)
-        #     for curr_point_index in curr_face:
-        #         curr_point = self.vertices[curr_point_index]
-        #         # add curr_point to face_point
-        #         # will divide later
-        #         for i in range(NUM_DIMENSIONS):
-        #             f = face_point.get_index(i)
-        #             f += curr_point.get_index(i)
-        #     # divide by number of points for average
-        #     num_points = len(curr_face)
-        #     for i in range(NUM_DIMENSIONS):
-        #         f = face_point.get_index(i)
-        #         f /= num_points
-        #     face_points.append(face_point)
-
-        return face_points
-
-    def get_edges_faces(self):
+    def subdivide(self):
         """
-        Get list of edges and the one or two adjacent faces in a list.
-        also get center point of edge
-        Each edge would be [pointnum_1, pointnum_2, facenum_1, facenum_2, center]
+        self.vertices = [ Point3f(1.0, 1.0, 1.0), ...]
+        self.faces = [ [0, 2, 3, 1], ...]
+
+        references:
+        - https://en.wikipedia.org/wiki/Catmull%E2%80%93Clark_subdivision_surface
+        - http://www.rorydriscoll.com/2008/08/01/catmull-clark-subdivision-the-basics/
+        - https://rosettacode.org/wiki/Catmull%E2%80%93Clark_subdivision_surface
+        - https://www.algosome.com/articles/catmull-clark-subdivision-algorithm.html
         """
-        # will have [pointnum_1, pointnum_2, facenum]
+        vertices = self.vertices.copy()
+        faces = self.faces.copy()
+
+        # 1. face points
+        facePoints = [reduce(lambda v1, v2: v1.add(v2), map(lambda idx: self.vertices[idx], face)) * (1.0 / len(face)) for
+                      face in faces]
+
+        # 2. find edges
         edges = []
 
         # get edges from each face
-        for facenum in range(len(self.faces)):
-            face = self.faces[facenum]
-            num_points = len(face)
-            # loop over index into face
-            for pointindex in range(num_points):
-                # if not last point then edge is curr point and next point
-                if pointindex < num_points - 1:
-                    pointnum_1 = face[pointindex]
-                    pointnum_2 = face[pointindex + 1]
-                else:
-                    # for last point edge is curr point and first point
-                    pointnum_1 = face[pointindex]
-                    pointnum_2 = face[0]
-                # order points in edge by lowest point number
-                if pointnum_1 > pointnum_2:
-                    temp = pointnum_1
-                    pointnum_1 = pointnum_2
-                    pointnum_2 = temp
-                edges.append([pointnum_1, pointnum_2, facenum])
+        for faceIndex in range(len(faces)):
+            face = faces[faceIndex]
+            faceLength = len(face)
 
-        # sort edges by pointnum_1, pointnum_2, facenum
+            for pointNumIndex in range(faceLength):
+                # if not last point then edge is curr point and next point, else edge is curr point and first point
+                pointNum1 = face[pointNumIndex]
+                pointNum2 = face[pointNumIndex + 1 if (pointNumIndex < faceLength - 1) else 0]
+
+                # order points in edge by lowest point number
+                if pointNum1 > pointNum2:
+                    pointNum1, pointNum2 = pointNum2, pointNum1
+
+                edges.append([pointNum1, pointNum2, faceIndex])
+
+        # sort edges by pointNum1, pointNum2, faceIndex
         edges = sorted(edges)
 
         # merge edges with 2 adjacent faces
-        merged_edges = []
-        length = int(len(edges)/2)
-        for edgeIndex in range(length):
+        # [pointNum1, pointNum2, faceIndex1, faceIndex2]
+        mergedEdges = []
+
+        i = int(len(edges) / 2)
+        for edgeIndex in range(i):
             edge1 = edges[2 * edgeIndex]
-            edge2 = edges[2 * edgeIndex - 1]
-            merged_edges.append([edge1[0], edge1[1], edge1[2], edge2[2]])
+            edge2 = edges[2 * edgeIndex + 1]
+            mergedEdges.append([edge1[0], edge1[1], edge1[2], edge2[2]])
 
         # add edge centers
-        edges_centers = []
+        # [pointNum1, pointNum2, faceIndex1, faceIndex2, centerPoint]
+        edgesCenters = []
 
-        for me in merged_edges:
-            p1 = self.vertices[me[0]]
-            p2 = self.vertices[me[1]]
-            center_point = p1.calculate_center(p2)
-            edges_centers.append(me + [center_point])
+        for mergedEdge in mergedEdges:
+            point1 = vertices[mergedEdge[0]]
+            point2 = vertices[mergedEdge[1]]
+            centerPoint = (point1.add(point2)) * 0.5
+            edgesCenters.append(mergedEdge + [centerPoint])
 
-        return edges_centers
+        # 3. edge points
+        edgePoints = []
 
-    def get_edge_points(self, edges_faces, face_points):
-        """
-        for each edge, an edge point is created which is the average
-        between the center of the edge and the center of the segment made
-        with the face points of the two adjacent faces.
-        """
-        edge_points = []
-        for edge in edges_faces:
+        for edgeFace in edgesCenters:
             # get center of edge
-            cp = edge[4]
+            centerEdgePoint = edgeFace[4]
             # get center of two facepoints
-            fp1 = face_points[edge[2]]
-            # if not two faces just use one facepoint
-            # should not happen for solid like a cube
-            if edge[3] == None:
-                fp2 = fp1
-            else:
-                fp2 = face_points[edge[3]]
-            cfp = Vec3d.calculate_midpoint(fp1, fp2)
-            # get average between center of edge and
-            # center of facepoints
-            edge_point = cp.calculate_center(Vec3d(cfp[0], cfp[1], cfp[2]))
-            edge_points.append(edge_point)
-        return edge_points
+            facePoint1 = facePoints[edgeFace[2]]
+            facePoint2 = facePoints[edgeFace[3]]
+            centerFacePoint = (facePoint1.add(facePoint2)) * 0.5
+            # get average between center of edge and center of facepoints
+            edgePoint = (centerEdgePoint.add(centerFacePoint)) * 0.5
+            edgePoints.append(edgePoint)
 
-    def get_avg_face_points(self, face_points):
-        """
-        for each point calculate
-        the average of the face points of the faces the point belongs to (avg_face_points)
+        # 4. new vertices
 
-        create a list of lists of two numbers [facepoint_sum, num_points] by going through the
-        points in all the faces.
-        then create the avg_face_points list of point by dividing point_sum (x, y, z) by num_points
-        """
+        # 4.1 average face points
+        # the average of the face points of the faces the point belongs to (avg_face_points)
+        tempPoints = []  # [[Point3f(0.0, 0.0, 0.0), 0], ...]
+        averageFacePoints = []  # [Point3f(0.0, 0.0, 0.0), ...]
+        for pointIndex in range(len(vertices)):
+            tempPoints.append([HCoordinates(0.0, 0.0, 0.0, 0.0), 0])
 
-        # initialize list with [[0.0, 0.0, 0.0], 0]
-        num_points = len(self.vertices)
-        temp_points = []
-
-        for pointnum in range(num_points):
-            temp_points.append([Vec3d(0.0, 0.0, 0.0), 0])
-
-        # loop through faces updating temp_points
-        for facenum in range(len(self.faces)):
-            for pointnum in self.faces[facenum]:
-                temp_points[pointnum][0] = face_points[facenum].add(temp_points[pointnum][0])
-                temp_points[pointnum][1] += 1
+        # loop through faces updating tempPoints
+        for faceIndex in range(len(faces)):
+            for pointIndex in faces[faceIndex]:
+                tempPoints[pointIndex][0] = tempPoints[pointIndex][0].add(facePoints[faceIndex])
+                tempPoints[pointIndex][1] += 1
 
         # divide to create avg_face_points
-        avg_face_points = []
+        for tempPoint in tempPoints:
+            averageFacePoints.append(tempPoint[0] * (1.0 / tempPoint[1]))
 
-        for tp in temp_points:
-            avg_face_points.append(tp[0] * (1.0 / tp[1]))
+        # 4.2 average mid edges
+        # the average of the centers of edges the point belongs to (avg_mid_edges)
+        tempPoints = []  # [[Point3f(0.0, 0.0, 0.0), 0], ...]
+        averageMidEdges = []  # [Point3f(0.0, 0.0, 0.0), ...]
+        for pointIndex in range(len(vertices)):
+            tempPoints.append([HCoordinates(0.0, 0.0, 0.0, 0.0), 0])
 
-        return avg_face_points
-
-    def get_avg_mid_edges(self, edges_faces):
-        """
-        the average of the centers of edges the point belongs to (avg_mid_edges)
-        create list with entry for each point
-        each entry has two elements. one is a point that is the sum of the centers of the edges
-        and the other is the number of edges. after going through all edges divide by
-        number of edges.
-        """
-
-        # initialize list with [[0.0, 0.0, 0.0], 0]
-        num_points = len(self.vertices)
-        temp_points = []
-
-        for pointnum in range(num_points):
-            temp_points.append([Vec3d(0.0, 0.0, 0.0), 0])
-
-        # go through edges_faces using center updating each point
-        for edge in edges_faces:
-            for pointnum in [edge[0], edge[1]]:
-                temp_points[pointnum][0] = temp_points[pointnum][0].add(edge[4])
-                temp_points[pointnum][1] += 1
+        # go through edgesCenters using center updating each point
+        for edge in edgesCenters:
+            for pointIndex in [edge[0], edge[1]]:
+                tempPoints[pointIndex][0] = tempPoints[pointIndex][0].add(edge[4])
+                tempPoints[pointIndex][1] += 1
 
         # divide out number of points to get average
-        avg_mid_edges = []
-        for tp in temp_points:
-            avg_mid_edges.append(tp[0] * (1.0 / tp[1]))
+        for tempPoint in tempPoints:
+            averageMidEdges.append(tempPoint[0] * (1.0 / tempPoint[1]))
 
-        return avg_mid_edges
-
-    def get_points_faces(self):
-        # initialize list with 0
-        num_points = len(self.vertices)
-        points_faces = []
-
-        for pointnum in range(num_points):
-            points_faces.append(0)
-
-        # loop through faces updating points_faces
-        for facenum in range(len(self.faces)):
-            for pointnum in self.faces[facenum]:
-                points_faces[pointnum] += 1
-
-        return points_faces
-
-    def get_new_points(self, points_faces, avg_face_points, avg_mid_edges):
-        """
-        m1 = (n - 3) / n
-        m2 = 1 / n
-        m3 = 2 / n
-        new_coords = (m1 * old_coords)
-                   + (m2 * avg_face_points)
-                   + (m3 * avg_mid_edges)
-        """
-        new_vertices = []
-        vertices = self.vertices.copy()
-        for pointnum in range(len(self.vertices)):
-            n = points_faces[pointnum]
-            m1 = (n - 3) / n
-            m2 = 1 / n
-            m3 = 2 / n
-            new_coords = (vertices[pointnum].multiply_vec(m1)).add((avg_face_points[pointnum].scale(m2)).add(avg_mid_edges[pointnum].scale(m3)))
-            new_vertices.append(Vec3d(new_coords.x, new_coords.y, new_coords.z))
-
-        return new_vertices
-
-    def switch_nums(self, point_nums):
-        """
-        Returns tuple of point numbers
-        sorted least to most
-        """
-        if point_nums[0] < point_nums[1]:
-            return point_nums
-        else:
-            return (point_nums[1], point_nums[0])
-
-    def subdivide(self):
-        # for each face, a face point is created which is the average of all the points of the face.
-        # each entry in the returned list is a point (x, y, z).
-        face_points = self.get_face_points()
-
-        # get list of edges with 1 or 2 adjacent faces
-        # [pointnum_1, pointnum_2, facenum_1, facenum_2, center] or
-        # [pointnum_1, pointnum_2, facenum_1, None, center]
-        edges_faces = self.get_edges_faces()
-
-        # get edge points, a list of points
-        edge_points = self.get_edge_points(edges_faces, face_points)
-
-        # the average of the face points of the faces the point belongs to (avg_face_points)
-        avg_face_points = self.get_avg_face_points(face_points)
-
-        # the average of the centers of edges the point belongs to (avg_mid_edges)
-        avg_mid_edges = self.get_avg_mid_edges(edges_faces)
-
+        # 4.3 point faces
         # how many faces a point belongs to
-        points_faces = self.get_points_faces()
+        pointsFaces = []
 
+        for pointIndex in range(len(vertices)):
+            pointsFaces.append(0)
+
+        # loop through faces updating pointsFaces
+        for faceIndex in range(len(faces)):
+            for pointIndex in faces[faceIndex]:
+                pointsFaces[pointIndex] += 1
+
+        # 4.4 new vertices with barycenter
         """
         m1 = (n - 3) / n
         m2 = 1 / n
         m3 = 2 / n
-        new_coords = (m1 * old_coords)
-                   + (m2 * avg_face_points)
-                   + (m3 * avg_mid_edges)
+        newCoords = (m1 * oldCoords) + (m2 * averageFacePoints) + (m3 * averageMidEdges)
         """
-        new_points = self.get_new_points(points_faces, avg_face_points, avg_mid_edges)
+        newVertices = []
 
-        """
-        Then each face is replaced by new faces made with the new points,
+        for pointIndex in range(len(vertices)):
+            n = pointsFaces[pointIndex]
+            m1 = (n - 3.0) / n
+            m2 = 1.0 / n
+            m3 = 2.0 / n
+            newCoords1 = (vertices[pointIndex].scale(m1)).add((averageFacePoints[pointIndex].scale(m2)))
+            newCoords = newCoords1.add(averageMidEdges[pointIndex].scale(m3))
+            newVertices.append(newCoords)
 
-        for a triangle face (a,b,c):
-           (a, edge_point ab, face_point abc, edge_point ca)
-           (b, edge_point bc, face_point abc, edge_point ab)
-           (c, edge_point ca, face_point abc, edge_point bc)
+        # 4.5 add face points to newVertices
+        facePointIndices = []
+        edgePointIndices = dict()
+        nextPointIndex = len(newVertices)
 
-        for a quad face (a,b,c,d):
-           (a, edge_point ab, face_point abcd, edge_point da)
-           (b, edge_point bc, face_point abcd, edge_point ab)
-           (c, edge_point cd, face_point abcd, edge_point bc)
-           (d, edge_point da, face_point abcd, edge_point cd)
+        # point num after next append to newVertices
+        for facePoint in facePoints:
+            newVertices.append(facePoint)
+            facePointIndices.append(nextPointIndex)
+            nextPointIndex += 1
 
-        face_points is a list indexed by face number so that is
-        easy to get.
+        # add edge points to newPoints
+        for edgeIndex in range(len(edgesCenters)):
+            pointIndex1 = edgesCenters[edgeIndex][0]
+            pointIndex2 = edgesCenters[edgeIndex][1]
+            edgePoint = edgePoints[edgeIndex]
+            newVertices.append(edgePoint)
+            edgePointIndices[(pointIndex1, pointIndex2)] = nextPointIndex
+            nextPointIndex += 1
 
-        edge_points is a list indexed by the edge number
-        which is an index into edges_faces.
+        # 5. new faces
+        # newVertices now has the points to output. Need new faces
+        newFaces = []
 
-        need to add face_points and edge points to
-        new_points and get index into each.
-
-        then create two new structures
-
-        face_point_nums - list indexes by facenum
-        whose value is the index into new_points
-
-        edge_point num - dictionary with key (pointnum_1, pointnum_2)
-        and value is index into new_points
-
-        """
-
-        # add face points to new_points
-        face_point_nums = []
-
-        # point num after next append to new_points
-        next_pointnum = len(new_points)
-
-        for face_point in face_points:
-            new_points.append(face_point)
-            face_point_nums.append(next_pointnum)
-            next_pointnum += 1
-
-        # add edge points to new_points
-        edge_point_nums = dict()
-
-        for edgenum in range(len(edges_faces)):
-            pointnum_1 = edges_faces[edgenum][0]
-            pointnum_2 = edges_faces[edgenum][1]
-            edge_point = edge_points[edgenum]
-            new_points.append(edge_point)
-            edge_point_nums[(pointnum_1, pointnum_2)] = next_pointnum
-            next_pointnum += 1
-
-        # new_points now has the points to output. Need new
-        # faces
-
-        """
-        just doing this case for now:
-
-        for a quad face (a,b,c,d):
-           (a, edge_point ab, face_point abcd, edge_point da)
-           (b, edge_point bc, face_point abcd, edge_point ab)
-           (c, edge_point cd, face_point abcd, edge_point bc)
-           (d, edge_point da, face_point abcd, edge_point cd)
-
-        new_faces will be a list of lists where the elements are like this:
-
-        [pointnum_1, pointnum_2, pointnum_3, pointnum_4]
-
-        """
-
-        new_faces = []
-
-        for oldfacenum in range(len(self.faces)):
-            oldface = self.faces[oldfacenum]
+        for oldFaceIndex in range(len(faces)):
+            oldFace = faces[oldFaceIndex]
             # 4 point face
-            if len(oldface) == 4:
-                a = oldface[0]
-                b = oldface[1]
-                c = oldface[2]
-                d = oldface[3]
-                face_point_abcd = face_point_nums[oldfacenum]
-                edge_point_ab = edge_point_nums[self.switch_nums((a, b))]
-                edge_point_da = edge_point_nums[self.switch_nums((d, a))]
-                edge_point_bc = edge_point_nums[self.switch_nums((b, c))]
-                edge_point_cd = edge_point_nums[self.switch_nums((c, d))]
-                new_faces.append([a, edge_point_ab, face_point_abcd, edge_point_da])
-                new_faces.append([b, edge_point_bc, face_point_abcd, edge_point_ab])
-                new_faces.append([c, edge_point_cd, face_point_abcd, edge_point_bc])
-                new_faces.append([d, edge_point_da, face_point_abcd, edge_point_cd])
+            if len(oldFace) == 4:
+                # old vertices
+                a = oldFace[0]
+                b = oldFace[1]
+                c = oldFace[2]
+                d = oldFace[3]
+                # create face point and edges
+                facePoint_abcd = facePointIndices[oldFaceIndex]
+                edge_point_ab = edgePointIndices[self.sortIndices((a, b))]
+                edge_point_da = edgePointIndices[self.sortIndices((d, a))]
+                edge_point_bc = edgePointIndices[self.sortIndices((b, c))]
+                edge_point_cd = edgePointIndices[self.sortIndices((c, d))]
+                # add new faces
+                newFaces.append((a, edge_point_ab, facePoint_abcd, edge_point_da))
+                newFaces.append((b, edge_point_bc, facePoint_abcd, edge_point_ab))
+                newFaces.append((c, edge_point_cd, facePoint_abcd, edge_point_bc))
+                newFaces.append((d, edge_point_da, facePoint_abcd, edge_point_cd))
+            else:
+                raise Exception("face is broken!")
 
-        self.vertices = new_points
-        self.faces = new_faces
+        # 6. assign new shape
+        self.vertices = newVertices
+        self.faces = newFaces
         self.colors = []
-        for i in range(0, len(new_faces) + 1):
+        for i in range(0, len(newFaces) + 1):
             r = random.uniform(0, 1)
             g = random.uniform(0, 1)
             b = random.uniform(0, 1)
             self.colors.append(HCoordinates(r, g, b, 1.0))
 
+    def sortIndices(self, indices):
+        return indices if indices[0] < indices[1] else (indices[1], indices[0])
 

@@ -4,7 +4,7 @@
 # November 2019
 
 from hcoordinates import HCoordinates
-from object import Cube, Prizma, Pyramid
+from object import Cube, Pyramid, Cylinder, Prism
 
 
 class Scene:
@@ -15,7 +15,7 @@ class Scene:
         self.subdivision_level = 3
 
     def render(self):
-        if self.obj != None:
+        if self.obj is not None:
             self.obj.draw()
         else:
             pass
@@ -23,7 +23,9 @@ class Scene:
     def divide(self):
         if self.obj.type == "CUBE":
             self.subdivide(self.obj, self.subdivision_level)
-        elif self.obj.type == "PRIZMA":
+        elif self.obj.type == "PRISM":
+            self.obj.num_slices = self.subdivision_level
+        elif self.obj.type == "CYLINDER":
             self.obj.num_slices = self.subdivision_level
         self.render()
 
@@ -34,9 +36,12 @@ class Scene:
         elif key == "pyramid":
             pyramid = Pyramid()
             self.obj = pyramid
-        elif key == "prizma":
-            prizma = Prizma(1, 2)
-            self.obj = prizma
+        elif key == "prism":
+            prism = Prism(1, 2)
+            self.obj = prism
+        elif key == "cylinder":
+            cylinder = Cylinder(1, 2)
+            self.obj = cylinder
         elif key == "increase" and self.subdivision_level < 10:
             self.subdivision_level += 1
             self.divide()
@@ -46,6 +51,7 @@ class Scene:
         elif key == "reset":
             self.subdivision_level = 3
             self.divide()
+
 
     def subdivide(self, obj, subdivision_level):
         for i in range(subdivision_level - 1):
