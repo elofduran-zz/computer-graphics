@@ -1,7 +1,7 @@
-# CENG 487 Assignment3 by
+# CENG 487 Assignment4 by
 # Elif Duran
 # StudentId: 230201002
-# November 2019
+# December 2019
 
 
 from hcoordinates import HCoordinates

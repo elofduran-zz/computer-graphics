@@ -1,8 +1,7 @@
-# CENG 487 Assignment3 by
+# CENG 487 Assignment4 by
 # Elif Duran
 # StudentId: 230201002
-# November 2019
-
+# December 2019
 
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -13,7 +12,11 @@ from scene import Scene
 ESCAPE = '\033'
 window = 0
 
-scene = Scene(sys.argv[1])
+if len(sys.argv) < 2:
+    input = "tori.obj"
+else:
+    input = sys.argv[1]
+scene = Scene(input)
 scene.init()
 
 
