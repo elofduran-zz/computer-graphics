@@ -7,11 +7,7 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
-from camera import Camera
-from defs import DrawStyle
-from hcoordinates import Position, Vec3d
 from scene import Scene
-from view import Grid, View
 
 ESCAPE = '\033'
 window = 0
@@ -23,101 +19,78 @@ else:
 scene = Scene(input)
 scene.init()
 
-# create grid
-grid = Grid("grid", 10, 10)
-grid.setDrawStyle(DrawStyle.WIRE)
-grid.setWireWidth(1)
 
-# create camera
-camera = Camera()
-camera.createView( Position(0.0, 0.0, 10.0), \
-                      Position(0.0, 0.0, 0.0), \
-                      Vec3d(0.0, 1.0, 0.0) )
-camera.setNear(1)
-camera.setFar(1000)
-
-# create View
-view = View(camera, grid)
-
-# init scene
-view.setScene(scene)
-
-# create objects
-# cube1 = Cube("cube", 1, 1, 1, 10, 10, 10)
-# cube1.Translate( 2, 0.5, 0)
-# scene.add(cube1)
-#
-# cube2 = Cube("cube", 1.5, 1.5, 1.5, 10, 10, 10)
-# cube2.Translate( -2, 0, 0)
-# scene.add(cube2)
-
-def main():
-    global view
-    glutInit(sys.argv)
-
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
-
-    glutInitWindowSize(640, 480)
-    glutInitWindowPosition(200, 200)
-
-    window = glutCreateWindow("CENG487 Assigment Template")
-
-    # define callbacks
-    glutDisplayFunc( view.draw )
-    glutIdleFunc( view.idleFunction )
-    glutReshapeFunc( view.resizeView )
-    glutKeyboardFunc( view.keyPressed )
-    glutSpecialFunc( view.specialKeyPressed )
-    glutMouseFunc( view.mousePressed )
-    glutMotionFunc( view.mouseMove )
-
-    # Initialize our window
-    width = 640
-    height = 480
-    glClearColor(0.0, 0.0, 0.0, 0.0)	# This Will Clear The Background Color To Black
-    glClearDepth(1.0)					# Enables Clearing Of The Depth Buffer
-    glDepthFunc(GL_LEQUAL)				# The Type Of Depth Test To Do
-    glEnable(GL_DEPTH_TEST)				# Enables Depth Testing
-    # glEnable(GL_LINE_SMOOTH)			# Enable line antialiasing
-    glShadeModel(GL_SMOOTH)				# Enables Smooth Color Shading
+def InitGL(Width, Height):
+    glClearColor(0.0, 0.0, 0.0, 0.0)
+    glClearDepth(1.0)
+    glDepthFunc(GL_LESS)
+    glEnable(GL_DEPTH_TEST)
+    glShadeModel(GL_SMOOTH)
     glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()					# Reset The Projection Matrix
-
-    # create the perpective projection
-    gluPerspective( view.camera.fov, float(width ) /float(height), camera.near, camera.far )
+    glLoadIdentity()
+    gluPerspective(45.0, float(Width) / float(Height), 0.1, 100.0)
     glMatrixMode(GL_MODELVIEW)
 
-    # Start Event Processing Engine
+
+def ReSizeGLScene(Width, Height):
+    if Height == 0:
+        Height = 1
+
+    glViewport(0, 0, Width, Height)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(45.0, float(Width) / float(Height), 0.1, 100.0)
+    glMatrixMode(GL_MODELVIEW)
+
+
+def DrawGLScene():
+    global scene
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
+    gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+    glTranslatef(0.0, -0.4, -3.0)
+    glRotatef(-40, 1.0, 0.0, 0.0)
+    scene.render()
+    glutSwapBuffers()
+
+
+def keyPressed(*argv):
+    if argv[0] == b'\x1b':
+        sys.exit()
+    elif argv[0] == b'a':
+        scene.key_pressed('increase')
+    elif argv[0] == b'e':
+        scene.key_pressed('decrease')
+    elif argv[0] == b'r':
+        scene.key_pressed('reset')
+
+
+def special_key(key, x, y):
+    global scene
+    if key == GLUT_KEY_LEFT:
+        scene.key_pressed('left')
+    elif key == GLUT_KEY_RIGHT:
+        scene.key_pressed('right')
+
+
+def main():
+    global window
+    glutInit(sys.argv)
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
+    glutInitWindowSize(640, 480)
+    glutInitWindowPosition(0, 0)
+    window = glutCreateWindow("Elofin")
+    glutDisplayFunc(DrawGLScene)
+    glutIdleFunc(DrawGLScene)
+    glutReshapeFunc(ReSizeGLScene)
+    glutKeyboardFunc(keyPressed)
+    glutSpecialFunc(special_key)
+    InitGL(640, 480)
     glutMainLoop()
 
-# Print message to console, and kick off the main to get it rolling.
-print ("Hit ESC key to quit.")
+
+print("Hit ESC key to quit.")
+print("Press 'a' to increase subdivision.")
+print("Press 'e' to decrease subdivision.")
+print("Press 'r' to reset subdivision.")
 main()
-
-
-
-
-
-
-
-# def main():
-#     global window
-#     glutInit(sys.argv)
-#     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
-#     glutInitWindowSize(640, 480)
-#     glutInitWindowPosition(0, 0)
-#     window = glutCreateWindow("Elofin")
-#     glutDisplayFunc(DrawGLScene)
-#     glutIdleFunc(DrawGLScene)
-#     glutReshapeFunc(ReSizeGLScene)
-#     glutKeyboardFunc(keyPressed)
-#     glutSpecialFunc(special_key)
-#     InitGL(640, 480)
-#     glutMainLoop()
-#
-#
-# print("Hit ESC key to quit.")
-# print("Press 'a' to increase subdivision.")
-# print("Press 'e' to decrease subdivision.")
-# print("Press 'r' to reset subdivision.")
-# main()

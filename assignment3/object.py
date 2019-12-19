@@ -10,9 +10,8 @@ from OpenGL.GL import *
 
 
 # Reference: https://rosettacode.org/wiki/Catmull%E2%80%93Clark_subdivision_surface#Python
-from defs import DrawStyle
 from hcoordinates import HCoordinates, Vec3d
-from operations.mat3d import *
+from operations.mat3d import Mat3d
 
 
 class Object:
@@ -22,34 +21,16 @@ class Object:
         self.vertices = vertices
         self.faces = faces
         self.colors = []
-        self.operation = Matrix()
-        self.vertices = vertices
-        self.edges = []
-        self.faces = faces
-        self.colors = []
-        self.obj2World = Matrix()
-        self.drawStyle = DrawStyle.NODRAW
+        self.operation = Mat3d()
         self.wireOnShaded = False
         self.wireWidth = 2
-        self.fixedDrawStyle = False
-        self.wireColor = ColorRGBA(0.7, 1.0, 0.0, 1.0)
-        self.wireOnShadedColor = ColorRGBA(1.0, 1.0, 1.0, 1.0)
         self.wireOnShadedColor = HCoordinates(1.0, 1.0, 1.0, 1.0)
 
     def apply_operation(self, mat3d):
         for i, vertex in enumerate(self.vertices):
             self.vertices[i] = mat3d.multiply_vec(vertex)
 
-    def setDrawStyle(self, style):
-        self.drawStyle = style
-
-    def setWireColor(self, r, g, b, a):
-        self.wireColor = ColorRGBA(r, g, b, a)
-
-    def setWireWidth(self, width):
-        self.wireWidth = width
-
-    def draw(self):
+    def draw(self, camera):
         index = 0
         for face in self.faces:
 
@@ -72,8 +53,7 @@ class Object:
                 else:
                     glColor3f(1.0, 2.6, 0.0)
 
-                for v in face:
-                    vertex = int(v) - 1
+                for vertex in face:
                     glVertex3f(self.vertices[vertex].x, self.vertices[vertex].y, self.vertices[vertex].z)
                 glEnd()
 
@@ -82,8 +62,7 @@ class Object:
             glLineWidth(2.5)
             glBegin(GL_LINE_LOOP)
             glColor3f(.3, .3, .3)
-            for v in face:
-                vertex = int(v) - 1
+            for vertex in face:
                 glVertex3f(self.vertices[vertex].x, self.vertices[vertex].y, self.vertices[vertex].z)
             glEnd()
 

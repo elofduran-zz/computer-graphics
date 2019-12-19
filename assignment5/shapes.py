@@ -55,6 +55,7 @@ class _Shape:
 					glColor3f(1.0, 0.6, 0.0)
 
 				for vertex in face:
+					vertex = int(vertex) - 1
 					glVertex3f(self.vertices[vertex].x, self.vertices[vertex].y, self.vertices[vertex].z)
 				glEnd()
 
@@ -74,6 +75,7 @@ class _Shape:
 					glColor3f(self.wireColor.r, self.wireColor.g, self.wireColor.b)
 
 				for vertex in face:
+					vertex = int(vertex) - 1
 					glVertex3f(self.vertices[vertex].x, self.vertices[vertex].y, self.vertices[vertex].z)
 				glEnd()
 

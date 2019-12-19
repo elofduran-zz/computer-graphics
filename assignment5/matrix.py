@@ -73,7 +73,7 @@ class Matrix:
 
 	def product(self, other):
 		cols = []
-		for x in xrange(0, other.colsize()):
+		for x in range(0, other.colsize()):
 			cols.append(self.vecmul(other.cols[x]))
 		return Matrix(cols)
 

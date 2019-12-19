@@ -18,16 +18,6 @@ class HCoordinates(object):
     def __str__(self):
         return 'HCoordinates(' + self.x + ', ' + str(self.y) + ', ' + str(self.z) + ', ' + str(self.w) + ')'
 
-    def sqrlen(self):
-        return 1.0 * self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w
-
-    def len(self):
-        return math.sqrt(self.sqrlen())
-
-    def normalize(self):
-        l = self.len()
-        return HCoordinates(self.x / l, self.y / l, self.z / l, self.w / l)
-
     @staticmethod
     def list_to_coord(new_list):
         return HCoordinates(new_list[0], new_list[1], new_list[2], new_list[3])
@@ -39,10 +29,6 @@ class HCoordinates(object):
         result = HCoordinates(self.x + coord.x, self.y + coord.y, self.z + coord.z, self.w + coord.w)
         return result
 
-    def subtract(self, coord):
-        result = HCoordinates(self.x - coord.x, self.y - coord.y, self.z - coord.z, self.w - coord.w)
-        return result
-
     def scale(self, number):
         result = HCoordinates(self.x * number, self.y * number, self.z * number, self.w * number)
         return result
@@ -52,12 +38,6 @@ class HCoordinates(object):
 
     def multiply_vec(self, num):
         return HCoordinates(self.x * num, self.y * num, self.z * num, self.w * num)
-
-    def cross(self, other):
-        return HCoordinates(self.y * other.z - self.z * other.y, \
-                      self.z * other.x - self.x * other.z, \
-                      self.x * other.y - self.y * other.x, \
-                      self.w)
 
     def __mul__(self, scalar):
         return HCoordinates(scalar * self.x, scalar * self.y, scalar * self.z, self.w * scalar)
@@ -120,11 +100,3 @@ class Vec3d(HCoordinates):
     @staticmethod
     def calculate_midpoint(p1, p2):
         return [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2]
-
-class ColorRGBA(HCoordinates):
-	def __init__(self, r, g, b, a):
-		HCoordinates.__init__(self, r, g, b, a)
-		self.r = self.x
-		self.g = self.y
-		self.b = self.z
-		self.a = self.w
